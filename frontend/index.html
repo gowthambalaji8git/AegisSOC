@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AegisSOC - AI-Powered SOC Incident Management</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0e10;--card:#08090a;--line:#26282c;--tx:#eceef1;--mu:#8b9099;--hi:#17191c;--crit:#d9534a;--high:#e2792c;--med:#e6c53f;--low:#6d7178;--ok:#2fbf8f;--mint:#95f4c9;--peach:#f5b98a;--ink:#0d0e10;--pink:#d6408f;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#eef0f3;--card:#fff;--line:#d9dce1;--tx:#15171a;--mu:#5d636c;--hi:#f2f3f5;color-scheme:light}}
+:root[data-theme="light"]{--bg:#eef0f3;--card:#fff;--line:#d9dce1;--tx:#15171a;--mu:#5d636c;--hi:#f2f3f5;color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 'IBM Plex Sans',system-ui,sans-serif}
+button,select{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
+.app{display:flex;min-height:100vh}
+.rail{position:sticky;top:0;width:236px;height:100vh;flex:none;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:18px 14px;background:var(--card);z-index:4}
+.rail svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.rail button{width:100%;min-height:42px;border-radius:8px;display:flex;align-items:center;gap:12px;color:var(--mu);background:none;border:1px solid transparent;padding:0 12px;text-align:left}
+.rail button:hover{color:var(--tx);background:var(--hi)}
+.rail button.on{background:var(--hi);border-color:color-mix(in srgb,var(--pink) 55%,var(--line));color:var(--tx);box-shadow:inset 3px 0 var(--pink)}
+.rail .logo{min-height:50px;border:0;border-bottom:1px solid var(--line);border-radius:0;color:var(--tx);margin-bottom:12px;padding:0 12px 16px;font-size:17px;font-weight:600}
+.rail .logo.on{background:none;color:var(--pink)}
+.rail .logo:hover{background:none;color:var(--pink)}
+.nav-label{white-space:nowrap}
+table.s{min-width:0}
+main{flex:1;min-width:0;padding:0 22px 40px}
+.top{display:flex;align-items:center;gap:28px;border-bottom:1px solid var(--line);overflow-x:auto}
+.top b{font-weight:600;white-space:nowrap}
+.top button{background:none;border:0;border-bottom:2px solid transparent;color:var(--mu);padding:16px 0 14px;white-space:nowrap}
+.top button.on{color:var(--tx);border-color:var(--tx)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:16px 0}
+.ws{display:flex;gap:6px}
+.ws button,.bar select,.ob,.chip{background:var(--card);border:1px solid var(--line);border-radius:7px;padding:6px 11px}
+.ws button.on,.chip.on{border-color:var(--pink);box-shadow:0 0 0 1px var(--pink)}
+.sp{flex:1}
+.mu{color:var(--mu);font-size:12px}
+.g,.g3,.g2{display:grid;gap:14px;margin-bottom:14px}
+.g{grid-template-columns:repeat(4,1fr)}
+.g3{grid-template-columns:1fr 1.1fr 1.4fr}
+.g2{grid-template-columns:1.6fr 1fr}
+.c{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;min-width:0}
+.k{display:flex;justify-content:space-between;color:var(--mu);font-size:13px}
+.v{font-size:34px;font-weight:600;margin-top:14px;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.t{font:500 30px 'IBM Plex Mono',monospace;letter-spacing:0}
+.t u{text-decoration:none;opacity:.55;padding:0 3px}
+.tl{display:flex;gap:26px;font:400 11px 'IBM Plex Sans',sans-serif;opacity:.7;letter-spacing:0}
+.c.mint,.c.peach,.c.red{border-color:transparent;color:var(--ink)}
+.c.mint{background:var(--mint)}.c.peach{background:var(--peach)}.c.red{background:#f08a80}
+.c.mint .k,.c.peach .k,.c.red .k{color:inherit;opacity:.8}
+h3{margin:0 0 14px;font-size:14px;font-weight:600}
+h2{margin:2px 0 0;font-size:18px;line-height:1.3}
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;white-space:nowrap}
+.pill:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c)}
+.dn{display:flex;justify-content:space-around;gap:10px;text-align:center}
+.dn svg{transform:rotate(-90deg)}
+.lg{font-size:11.5px;color:var(--mu);text-align:left;margin-top:8px}
+.lg b{color:var(--tx);font-weight:500}
+.br{display:grid;grid-template-columns:56px 1fr 30px;gap:10px;align-items:center;margin:14px 0;color:var(--mu);font-size:12px}
+.br div{height:22px}.br b{display:block;height:100%;border-radius:2px}
+.br em{font-style:normal;color:var(--tx);text-align:right}
+.ln{width:100%;height:auto}.ln text{fill:var(--mu);font-size:8px}.ln line{stroke:var(--line)}
+.fi{display:flex;width:100%;gap:12px;justify-content:space-between;align-items:flex-start;background:none;border:0;border-bottom:1px solid var(--line);padding:11px 0;text-align:left}
+.fi small{display:flex;flex-wrap:wrap;gap:4px 14px;color:var(--mu);font-size:12px;margin-top:2px}
+.fi.new{animation:fl 1.8s}
+@keyframes fl{from{background:rgba(214,64,143,.2)}}
+.sr{display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th{text-align:left;font-weight:500;color:var(--mu);font-size:12px;padding:10px 12px;border-bottom:1px solid var(--line)}
+td{padding:12px;border-bottom:1px solid var(--line)}
+tr[data-id]{cursor:pointer}tr[data-id]:hover{background:var(--hi)}
+.sc{display:inline-block;width:54px;height:6px;background:var(--hi);border-radius:3px;vertical-align:middle;margin-right:8px;overflow:hidden}
+.sc i{display:block;height:100%;background:var(--c)}
+.chips{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.dr{position:fixed;top:0;right:0;bottom:0;width:min(450px,100%);background:var(--card);border-left:1px solid var(--line);transform:translateX(102%);transition:transform .2s;padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px));overflow:auto;z-index:5;visibility:hidden}
+.dr.on{transform:none;visibility:visible}
+.dh{display:flex;justify-content:space-between;gap:12px;margin-bottom:14px}
+.x{background:none;border:1px solid var(--line);border-radius:7px;width:32px;height:32px;flex:none}
+.box{background:var(--hi);border-radius:8px;padding:12px 14px;margin:12px 0}
+.box p{margin:6px 0 0}
+.box ul{margin:6px 0 0;padding-left:18px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.acts button{border:1px solid var(--line);background:var(--card);border-radius:7px;padding:8px 12px}
+.acts .pr{background:var(--pink);border-color:var(--pink);color:#fff}
+.q{background:var(--card);border:1px solid var(--line);border-radius:7px;padding:6px 11px;min-width:200px;color:var(--tx);font:inherit}
+.tac{display:grid;grid-template-columns:repeat(8,minmax(130px,1fr));gap:10px;overflow-x:auto;padding-bottom:6px}
+.tac h4{margin:0 0 8px;font-size:12px;color:var(--mu);font-weight:500}
+.cell{display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:7px;padding:8px 10px;margin-bottom:8px;font-size:12px;color:var(--tx);background:color-mix(in srgb,var(--crit) var(--h,0%),var(--hi))}
+.cell b{display:block;font-size:18px}
+.cell.e{background:none;color:var(--mu);border-style:dashed}
+.tl2,.st{list-style:none;margin:6px 0 0;padding:0}
+.tl2 li,.st li{display:flex;gap:10px;padding:3px 0;font-size:12.5px}
+.tl2 span,.st span{color:var(--mu);flex:none;font-variant-numeric:tabular-nums}
+.rl{display:flex;justify-content:space-between;gap:10px;width:100%;background:none;border:0;border-top:1px solid var(--line);padding:8px 0;text-align:left;color:inherit;font:inherit}
+code{font-family:'IBM Plex Mono',monospace;font-size:12px}
+#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--crit);color:#fff;border:0;border-radius:8px;padding:10px 16px;z-index:9;max-width:92vw;display:none}
+#toast.on{display:block}
+@media(max-width:900px){.g{grid-template-columns:repeat(2,1fr)}.g3,.g2{grid-template-columns:1fr}}
+@media(max-width:560px){.app{display:block}.rail{position:sticky;width:100%;height:auto;flex-direction:row;align-items:center;gap:4px;padding:10px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}.rail button{width:auto;min-width:max-content}.rail .logo{min-height:42px;border-bottom:0;border-right:1px solid var(--line);margin:0 4px 0 0;padding:0 14px 0 4px}.nav-label{display:inline}main{padding:0 14px 30px}.g{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<nav class="rail" aria-label="Sections">
+<button class="logo" data-v="posture" aria-label="AegisSOC home" title="Home"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg><span class="nav-label">AegisSOC</span></button>
+<button data-v="posture" aria-label="SOC posture" title="SOC posture"><svg viewBox="0 0 24 24"><path d="M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6"/></svg><span class="nav-label">SOC Posture</span></button>
+<button data-v="incidents" aria-label="Incidents" title="Incidents"><svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h14"/></svg><span class="nav-label">Incidents</span></button>
+<button data-v="sources" aria-label="SIEM sources" title="SIEM sources"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg><span class="nav-label">SIEM Sources</span></button>
+<button data-v="threats" aria-label="Threat map" title="Threat map"><svg viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg><span class="nav-label">Threat Map</span></button>
+</nav>
+<main>
+<nav class="top"><b>AegisSOC</b></nav>
+<div class="bar">
+<div class="ws"><button data-w="all">All workspaces</button><button data-w="me">My workspace</button></div>
+<select id="sv" aria-label="Severity filter"><option value="all">All severities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
+<input class="q" id="q" type="search" placeholder="Search cases (press /)" aria-label="Search cases">
+<span class="sp"></span><span class="mu" id="upd"></span>
+<button class="ob" data-l id="live"></button><button class="ob" data-th id="th"></button><button class="ob" data-csv>Export CSV</button>
+</div>
+<div id="v"></div>
+<p class="mu">Demo data: alerts are simulated as if streamed from Splunk, Sentinel, QRadar and Elastic, then triaged by the AI engine.</p>
+</main>
+</div>
+<button id="toast" data-id=""></button>
+<aside class="dr" id="dr" aria-label="Incident details"></aside>
+<script>
+const $=s=>document.querySelector(s),p=n=>String(n).padStart(2,'0');
+let seed=11;const rnd=()=>(seed=seed*16807%2147483647)/2147483647,pick=a=>a[Math.floor(rnd()*a.length)];
+const LIM={Critical:14400,High:28800,Medium:86400,Low:259200},CL={Critical:'crit',High:'high',Medium:'med',Low:'low'},SEV=Object.keys(LIM);
+const SRC=['Splunk','Microsoft Sentinel','IBM QRadar','Elastic SIEM'],BASE=[1,0,1,1,1,0,1,2,3,3];
+const R=[
+['Repeated failed logins then success','T1110','Brute Force','{u} had 41 failed sign-ins from 3 IPs, then a success from {h}. The pattern matches credential stuffing.','Reset {u} credentials|Block the source IPs at the firewall'],
+['File encryption burst on file server','T1486','Data Encrypted for Impact','{h} renamed 2,300 files with a new extension in 90 seconds. Behavior matches ransomware.','Isolate {h} from the network|Snapshot the file server'],
+['Beaconing to rarely seen domain','T1071','Application Layer Protocol','{h} contacts a newly registered domain every 60 seconds with a uniform payload size.','Sinkhole the domain|Collect memory from {h}'],
+['Impossible travel sign-in','T1078','Valid Accounts','{u} signed in from two countries 11 minutes apart using different devices.','Revoke {u} sessions|Require MFA re-registration'],
+['Encoded PowerShell from Office process','T1059.001','PowerShell','A Word process on {h} launched PowerShell with a base64 payload.','Kill the process tree on {h}|Quarantine the document'],
+['New admin added outside change window','T1098','Account Manipulation','{u} was added to Domain Admins at 02:14 with no approved change ticket.','Remove the group membership|Review actions taken by {u}'],
+['Large upload to personal cloud storage','T1567','Exfiltration Over Web Service','{u} uploaded 4.2 GB from {h} to a personal storage account.','Block the destination|Notify the data owner'],
+['Phishing link clicked','T1566','Phishing','{u} opened a link from a spoofed payroll email. The page harvests credentials.','Purge the email from all mailboxes|Reset {u} password'],
+['Internal port scan detected','T1046','Network Service Discovery','{h} probed 240 ports on the finance subnet. Likely an approved scanner or a misconfigured tool.','Confirm with the IT scan schedule|Add the scanner to the allow list'],
+['USB storage mounted on workstation','T1052','Exfiltration Over Physical Medium','{u} attached an unapproved USB drive to {h}. No files copied yet.','Ask {u} for the business reason|Enable the USB block policy']];
+let N=1000;
+function mk(st,fresh){
+ const r=Math.floor(rnd()*R.length),k=Math.max(0,Math.min(3,BASE[r]+(rnd()<.3?1:0)-(rnd()<.2?1:0))),sev=SEV[k],lim=LIM[sev];
+ const ttr=st=='closed'?Math.round(lim*(.05+rnd()*.9)*(rnd()<.2?1.4:1)):0;
+ const age=fresh?0:st=='closed'?ttr+rnd()*80000:Math.min(lim*rnd()*1.15,86000);
+ return{id:'INC-'+(++N),r,sev,st,ts:Date.now()-age*1000,ttr,tri:6+Math.round(rnd()*rnd()*50),
+  who:fresh||(st=='open'&&sev!='Critical'&&rnd()<.3)?null:pick(['You','Arun','Meera','Karthik']),
+  src:pick(SRC),h:'WS-'+(100+Math.floor(rnd()*80)),u:pick(['a.raman','s.iyer','m.thomas','k.nair','d.singh','p.menon']),
+  sc:[86,66,42,12][k]+Math.round(rnd()*13),cf:88+Math.round(rnd()*11)}}
+const I=[];
+let loadingIncidents=false;
+async function loadIncidents(){
+  if(loadingIncidents)return;
+  loadingIncidents=true;
+  try{
+    const res=await fetch('http://localhost:4000/api/incidents');
+
+    if(!res.ok){
+      throw new Error('API request failed');
+    }
+
+    const data=await res.json();
+
+    const apiIncidents=data.map(x=>{
+      const rIndex=R.findIndex(r=>r[0]===x.title);
+      const rSafe=rIndex>=0?rIndex:0;
+
+      return {
+        id:'INC-'+x.id,
+        title:x.title||'Untitled incident',
+        r:rSafe,
+        mitre:x.mitre_technique||R[rSafe][1],
+        sev:x.severity||'Medium',
+        st:x.status||'open',
+        ts:x.detected_at?new Date(x.detected_at).getTime():Date.now(),
+        ttr:x.triage_seconds||0,
+        tri:x.triage_seconds||0,
+        who:x.assignee||null,
+        src:x.source||'Unknown',
+        h:x.host||'Unknown',
+        u:x.username||'Unknown',
+        sc:x.ai_score??50,
+        cf:x.confidence??90
+      };
+    });
+
+    I.length=0;
+    I.push(...apiIncidents);
+
+    draw();
+    if(S.sel)drDraw();
+
+    console.log('Loaded incidents from AegisSOC API:', apiIncidents);
+
+  }catch(err){
+    console.error('Failed to load incidents:',err);
+  }finally{
+    loadingIncidents=false;
+  }
+}
+let feedSocket;
+function connectLiveFeed(){
+  if(!window.WebSocket)return;
+  feedSocket=new WebSocket((location.protocol=='https:'?'wss://':'ws://')+(location.hostname||'localhost')+':4000/ws');
+  feedSocket.onmessage=e=>{try{const m=JSON.parse(e.data);if(m.event=='incident:new'||m.event=='incident:update')loadIncidents()}catch(err){console.error('Invalid live feed event:',err)}};
+  feedSocket.onclose=()=>setTimeout(connectLiveFeed,3000);
+  feedSocket.onerror=()=>feedSocket.close();
+}
+const SRCS=[{n:'Splunk',e:1840,s:'Healthy'},{n:'Microsoft Sentinel',e:1210,s:'Healthy'},{n:'IBM QRadar',e:960,s:'Lagging 42 s'},{n:'Elastic SIEM',e:1430,s:'Healthy'}];
+const S={v:'posture',w:'all',sev:'all',st:'all',sel:null,live:true,q:'',tq:null};
+const HAY=i=>(i.id+' '+(i.title||R[i.r][0])+' '+(i.mitre||R[i.r][1])+' '+R[i.r][2]+' '+i.h+' '+i.u+' '+i.src+' '+(i.who||'')).toLowerCase();
+const F=()=>I.filter(i=>{
+  const workspaceMatch = S.w === 'all' || (S.w === 'me' && i.who === 'You');
+  const severityMatch = S.sev === 'all' || String(i.sev).toLowerCase() === String(S.sev).toLowerCase();
+  const statusMatch = S.st === 'all' || String(i.st).toLowerCase() === String(S.st).toLowerCase();
+  const searchMatch = !S.q || HAY(i).includes(S.q);
+
+  return workspaceMatch && severityMatch && statusMatch && searchMatch;
+});
+const lg=(i,x)=>(i.log=i.log||[]).push({t:Date.now(),x});
+const hm=t=>new Date(t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+const steps=i=>['Enrich indicators with threat intel','Notify on-call analyst',...R[i.r][4].replace(/{h}/g,i.h).replace(/{u}/g,i.u).split('|')];
+const TAC={'T1566':'Initial Access','T1078':'Initial Access','T1059.001':'Execution','T1098':'Persistence','T1110':'Credential Access','T1046':'Discovery','T1071':'Command and Control','T1567':'Exfiltration','T1052':'Exfiltration','T1486':'Impact'};
+const TACS=['Initial Access','Execution','Persistence','Credential Access','Discovery','Command and Control','Exfiltration','Impact'];
+const theme=()=>document.documentElement.dataset.theme||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+const pl=s=>`<span class="pill" style="--c:var(--${CL[s]})">${s}</span>`;
+const ago=t=>{const s=(Date.now()-t)/1000;return s<20?'just now':s<60?'<1 min':s<3600?Math.floor(s/60)+' min':s<86400?Math.floor(s/3600)+' h':Math.floor(s/86400)+' d'};
+const dur=s=>{s=Math.abs(s);return s>=3600?Math.floor(s/3600)+'h '+Math.floor(s%3600/60)+'m':Math.floor(s/60)+'m'};
+const tm=s=>`<span class="t">${p(Math.floor(s/3600))}<u>:</u>${p(Math.floor(s%3600/60))}<u>:</u>${p(Math.round(s%60))}</span><div class="tl"><span>Hours</span><span>Min</span><span>Sec</span></div>`;
+const kc=(l,v,c='',t='↗')=>`<div class="c ${c}"><div class="k"><span>${l}</span><span>${t}</span></div><div class="v">${v}</div></div>`;
+function stats(L){
+ const o=L.filter(i=>i.st=='open'),c=L.filter(i=>i.st=='closed'),h=L.filter(i=>i.st=='hold'),tr=L.map(i=>i.tri).sort((a,b)=>a-b);
+ const avg=a=>a.length?a.reduce((s,x)=>s+x.ttr,0)/a.length:0;
+ return{n:L.length,o,c,h,uc:o.filter(i=>i.sev=='Critical'&&!i.who).length,p90:tr[Math.floor(tr.length*.9)]||0,mc:avg(c.filter(i=>i.sev=='Critical')),m:avg(c)}}
+function donut(a,b,c){const t=a+b+c||1,C=2*Math.PI*38;let o=0;
+ return`<svg viewBox="0 0 100 100" width="104" height="104">`+[[a,'var(--ok)'],[b,'var(--high)'],[c,'var(--crit)']].map(([v,col])=>{const d=v/t*C,s=`<circle cx="50" cy="50" r="38" fill="none" stroke="${col}" stroke-width="16" stroke-dasharray="${d} ${C-d}" stroke-dashoffset="${-o}"/>`;o+=d;return s}).join('')+`</svg>`}
+function bars(L){const m=SEV.map(s=>L.filter(i=>i.sev==s).length),mx=Math.max(1,...m);
+ return SEV.map((s,k)=>`<div class="br"><span>${s}</span><div><b style="width:${m[k]/mx*100}%;background:var(--${CL[s]})"></b></div><em>${m[k]}</em></div>`).join('')}
+function line(L){
+ const now=Date.now(),B=12,W=300,H=140,step=7200000,a=Array(B).fill(0),b=Array(B).fill(0);
+ L.forEach(i=>{const k=B-1-Math.floor((now-i.ts)/step);if(k>=0&&k<B){if(i.sev=='Critical')a[k]++;if(i.sev=='Low')b[k]++}});
+ const mx=Math.max(4,...a,...b),P=v=>v.map((y,x)=>[(x*(W-34)/(B-1)+26).toFixed(1),(H-16-y/mx*(H-30)).toFixed(1)]);
+ const pth=(v,c)=>`<polyline points="${P(v).map(q=>q.join(',')).join(' ')}" fill="none" stroke="var(--${c})" stroke-width="1.7"/>`+P(v).map(q=>`<circle cx="${q[0]}" cy="${q[1]}" r="2.4" fill="var(--${c})"/>`).join('');
+ let g='';for(let k=0;k<=4;k++){const y=H-16-k/4*(H-30);g+=`<line x1="24" x2="${W}" y1="${y}" y2="${y}"/><text x="18" y="${y+3}" text-anchor="end">${Math.round(k/4*mx)}</text>`}
+ return`<svg class="ln" viewBox="0 0 ${W} ${H}" role="img" aria-label="Critical and low cases per two-hour bucket over the last 24 hours">${g}${pth(b,'low')}${pth(a,'crit')}<text x="26" y="${H-3}">24h ago</text><text x="${W-6}" y="${H-3}" text-anchor="end">now</text></svg><div class="lg"><span class="pill" style="--c:var(--crit)">Critical</span> &nbsp; <span class="pill" style="--c:var(--low)">Low</span></div>`}
+function feed(L){return[...L].sort((a,b)=>b.ts-a.ts).slice(0,6).map(i=>`<button class="fi${Date.now()-i.ts<5000?' new':''}" data-id="${i.id}"><span><b>${i.title||R[i.r][0]}</b><small><span>${i.src}</span><span>MITRE ${i.mitre||R[i.r][1]}</span><span>Triaged in ${i.tri}s</span><span>AI score ${i.sc}</span><span>${ago(i.ts)}</span></small></span>${pl(i.sev)}</button>`).join('')||'<p class="mu">No alerts match these filters.</p>'}
+function posture(L,s){
+ const n=Date.now(),op=[0,0,0],cl=[0,0];
+ L.filter(i=>i.st!='closed').forEach(i=>op[(n-i.ts)/1000/LIM[i.sev]<.75?0:(n-i.ts)/1000/LIM[i.sev]<1?1:2]++);
+ L.filter(i=>i.st=='closed').forEach(i=>cl[i.ttr<=LIM[i.sev]?0:1]++);
+ const pc=(a,t)=>t?Math.round(a/t*100)+'% within SLA':'No cases';
+ return`<div class="g">${kc('Created cases',s.n)}${kc('Open cases',s.o.length)}${kc('Closed cases',s.c.length,'','↘')}${s.uc?kc('Unassigned critical cases',s.uc,'red','!'):kc('Unassigned critical cases',0,'mint','→')}</div>
+<div class="g">${kc('On hold cases',s.h.length)}${kc('P90 triage time',tm(s.p90),'','◷')}${kc('MTTR critical cases',tm(s.mc),'peach','◷')}${kc('MTTR all cases',tm(s.m),'peach','◷')}</div>
+<div class="g3"><div class="c"><h3>SLA compliance</h3><div class="dn"><div>${donut(op[0],op[1],op[2])}<div class="mu">Open cases</div><div class="lg"><b>${pc(op[0],op[0]+op[1]+op[2])}</b><br>${op[1]} at risk, ${op[2]} breached</div></div><div>${donut(cl[0],0,cl[1])}<div class="mu">Closed cases</div><div class="lg"><b>${pc(cl[0],cl[0]+cl[1])}</b><br>${cl[1]} breached</div></div></div></div>
+<div class="c"><h3>Cases by severity</h3>${bars(L)}</div>
+<div class="c"><h3>Critical vs low cases over time</h3>${line(L)}</div></div>
+<div class="g2"><div class="c"><h3>Live AI triage</h3>${feed(L)}</div>
+<div class="c"><h3>SIEM sources</h3>${SRCS.map(x=>`<div class="sr"><span class="pill" style="--c:var(--${x.s=='Healthy'?'ok':'med'})">${x.n}</span><span class="mu">${x.e.toLocaleString()} events/s</span><span class="mu">${x.s}</span></div>`).join('')}</div></div>
+${work(L)}`}
+function work(L){
+ const A=['You','Arun','Meera','Karthik'],w=A.map(a=>L.filter(i=>i.who==a&&i.st!='closed').length),mx=Math.max(1,...w),au=L.filter(i=>i.auto).length,ru=L.filter(i=>i.pb).length;
+ return`<div class="g2"><div class="c"><h3>Analyst workload</h3>${A.map((a,k)=>`<div class="br"><span>${a}</span><div><b style="width:${w[k]/mx*100}%;background:var(--pink)"></b></div><em>${w[k]}</em></div>`).join('')}<div class="mu">Open and on-hold cases per analyst, ${L.filter(i=>i.st!='closed'&&!i.who).length} unassigned.</div></div>
+<div class="c"><h3>Playbook automation</h3><div class="v">${au}</div><div class="mu">cases auto-resolved, ${ru} playbooks run, about ${Math.round(au*18/6)/10} analyst hours saved</div><p class="mu">Open a case and choose Run playbook to start enrichment, notification and containment steps.</p></div></div>`}
+function threats(L){
+ const cnt={};
+ L.forEach(i=>{const k=i.mitre||R[i.r][1];cnt[k]=(cnt[k]||0)+1});
+ const mx=Math.max(1,...Object.values(cnt));
+ const techniques=[...new Map(R.map(r=>[r[1],{id:r[1],name:r[2],tactic:TAC[r[1]]}])).values()];
+ return`<div class="c"><h3>MITRE ATT&amp;CK coverage of current cases</h3><div class="tac">${TACS.map(t=>`<div><h4>${t}</h4>${techniques.filter(x=>x.tactic==t).map(x=>{const n=cnt[x.id]||0;return n?`<button class="cell" style="--h:${Math.round(20+n/mx*60)}%" data-t="${x.id}"><b>${n}</b>${x.name}<br><span style="opacity:.7">${x.id}</span></button>`:`<div class="cell e">${x.name}<br>${x.id}</div>`}).join('')}</div>`).join('')}</div><p class="mu">Darker cells mean more cases. Select a technique to see its cases.</p></div>`}
+function inc(L){
+ const ST={all:'All',open:'Open',hold:'On hold',closed:'Closed'},rows=L.filter(i=>(S.st=='all'||i.st==S.st)&&(!S.tq||i.mitre==S.tq)).sort((a,b)=>b.ts-a.ts).slice(0,40);
+ return`<div class="chips">${S.tq?`<button class="chip on" data-t="*">Technique ${S.tq} ×</button>`:''}${Object.keys(ST).map(k=>`<button class="chip${S.st==k?' on':''}" data-s="${k}">${ST[k]}</button>`).join('')}</div>
+<div class="c tw"><table><thead><tr><th>ID</th><th>Incident</th><th>Severity</th><th>AI score</th><th>Status</th><th>Assignee</th><th>Age</th></tr></thead><tbody>${rows.map(i=>`<tr data-id="${i.id}" tabindex="0"><td class="mu">${i.id}</td><td><b>${i.title||R[i.r][0]}</b><div class="mu">${i.src}, ${i.mitre||R[i.r][1]}</div></td><td>${pl(i.sev)}</td><td><span class="sc" style="--c:var(--${CL[i.sev]})"><i style="width:${i.sc}%"></i></span>${i.sc}</td><td>${{open:'Open',hold:'On hold',closed:'Closed'}[i.st]}</td><td class="${i.who?'':'mu'}">${i.who||'Unassigned'}</td><td class="mu">${ago(i.ts)}</td></tr>`).join('')||'<tr><td colspan="7" class="mu">No incidents match these filters.</td></tr>'}</tbody></table></div>`}
+function srcv(L){
+ const t={};L.forEach(i=>{const k=(i.mitre||R[i.r][1])+'|'+(i.src||R[i.r][2]);t[k]=(t[k]||0)+1});
+ const rows=Object.entries(t).sort((a,b)=>b[1]-a[1]);
+ return`<div class="g2"><div class="c"><h3>SIEM sources</h3><div class="tw"><table class="s"><thead><tr><th>Source</th><th>Throughput</th><th>Status</th><th>Open cases</th></tr></thead><tbody>${SRCS.map(x=>`<tr><td>${x.n}</td><td>${x.e.toLocaleString()} events/s</td><td><span class="pill" style="--c:var(--${x.s=='Healthy'?'ok':'med'})">${x.s}</span></td><td>${L.filter(i=>i.src==x.n&&i.st=='open').length}</td></tr>`).join('')}</tbody></table></div></div>
+<div class="c"><h3>MITRE ATT&amp;CK techniques seen</h3>${rows.map(([k,n])=>`<div class="sr"><span>${k.split('|')[1]}</span><span class="mu">${k.split('|')[0]}, ${n} cases</span></div>`).join('')||'<p class="mu">No cases match these filters.</p>'}</div></div>`}
+function draw(){
+ const L=F();
+ $('#v').innerHTML=S.v=='posture'?posture(L,stats(L)):S.v=='sources'?srcv(L):S.v=='threats'?threats(L):inc(L);
+ document.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v==S.v));
+ document.querySelectorAll('[data-w]').forEach(b=>b.classList.toggle('on',b.dataset.w==S.w));
+ $('#upd').textContent='Last updated at '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});
+ $('#th').textContent=theme()=='light'?'Dark theme':'Light theme';
+ $('#live').textContent=S.live?'Pause stream':'Resume stream';
+}
+function drDraw(){
+ const i=I.find(x=>x.id==S.sel),d=$('#dr');d.classList.toggle('on',!!i);if(!i)return;
+ const n=+i.id.slice(4),ip=`${185+n%20}.${n*7%250}.${n*13%250}.${n*29%250}`,rel=I.filter(x=>x!==i&&(x.h==i.h||(x.u==i.u&&x.mitre==i.mitre))).slice(0,3),tl=[{t:i.ts,x:'Detected by '+i.src},{t:i.ts+i.tri*1000,x:'AI triaged, risk '+i.sc},...(i.log||[])],ps=steps(i),r=R[i.r],f=s=>s.replace(/{h}/g,i.h).replace(/{u}/g,i.u),left=LIM[i.sev]-(Date.now()-i.ts)/1000;
+ d.innerHTML=`<div class="dh"><div><div class="mu">${i.id}, detected by ${i.src}</div><h2>${i.title||r[0]}</h2></div><button class="x" data-x aria-label="Close panel">×</button></div>
+${pl(i.sev)} &nbsp; <span class="mu">${{open:'Open',hold:'On hold',closed:'Closed'}[i.st]}, ${i.who||'unassigned'}${i.st!='closed'?', SLA '+(left>0?dur(left)+' left':'breached by '+dur(left)):''}</span>
+<div class="box"><b>AI verdict</b><p><span class="sc" style="--c:var(--${CL[i.sev]});width:90px"><i style="width:${i.sc}%"></i></span>Risk ${i.sc}/100 with ${i.cf}% confidence. Triaged in ${i.tri} seconds.</p><p>${f(r[3])}</p></div>
+<div class="box"><b>MITRE ATT&amp;CK</b><p>${i.mitre||r[1]}, ${r[2]}</p></div>
+<div class="box"><b>Indicators</b><p>Source IP <code>${ip}</code>, host ${i.h}, user ${i.u}</p><p>Threat intel: <span class="pill" style="--c:var(--${i.sc>=80?'crit':i.sc>=55?'high':'ok'})">${i.sc>=80?'Malicious':i.sc>=55?'Suspicious':'Low risk'}</span> in ${1+n%9} feeds</p></div>
+<div class="box"><b>Automated playbook</b>${i.pb?`<ul class="st">${ps.map((s,k)=>`<li><span>${k<i.pn?'✓':k==i.pn&&i.pb=='run'?'…':'○'}</span>${s}</li>`).join('')}</ul>`:`<p class="mu">${ps.length} steps ready. Low and medium cases close automatically when it finishes.</p>`}</div>
+${rel.length?`<div class="box"><b>Related incidents</b>${rel.map(x=>`<button class="rl" data-id="${x.id}"><span>${x.title||R[x.r][0]}</span>${pl(x.sev)}</button>`).join('')}${rel.length>1?'<p class="mu">Several cases share this host or user. Possible campaign.</p>':''}</div>`:''}
+<div class="box"><b>Recommended response</b><ul>${f(r[4]).split('|').map(a=>`<li>${a}</li>`).join('')}</ul></div>
+<div class="box"><b>Timeline</b><ul class="tl2">${tl.map(e=>`<li><span>${hm(e.t)}</span>${e.x}</li>`).join('')}</ul></div>
+<div class="acts">${i.st=='closed'?'<button data-a="open">Reopen case</button>':`${i.who=='You'?'':'<button class="pr" data-a="me">Assign to me</button>'}${i.pb?'':'<button data-a="pb">Run playbook</button>'}<button data-a="hold">${i.st=='hold'?'Resume case':'Put on hold'}</button>${i.sev=='Critical'?'':'<button data-a="esc">Escalate to critical</button>'}<button data-a="close">Close case</button>`}</div>`}
+async function act(i,a){
+ if(!i)return;
+
+ if(a=='pb'){
+   i.pb='run';i.pn=0;lg(i,'Playbook started');draw();drDraw();return;
+ }
+
+ const patch={};
+ if(a=='me')patch.assignee='You';
+ if(a=='hold')patch.status=i.st=='hold'?'open':'hold';
+ if(a=='esc')patch.severity='Critical';
+ if(a=='close')patch.status='closed';
+ if(a=='open')patch.status='open';
+ if(!Object.keys(patch).length)return;
+
+ try{
+   const apiId=i.id.replace('INC-','');
+   const res=await fetch(`http://localhost:4000/api/incidents/${apiId}`,{
+     method:'PATCH',
+     headers:{'Content-Type':'application/json'},
+     body:JSON.stringify(patch)
+   });
+   if(!res.ok)throw new Error(`PATCH failed: ${res.status}`);
+   const updated=await res.json();
+
+   i.st=updated.status||i.st;
+   i.who=updated.assignee||null;
+   i.sev=updated.severity||i.sev;
+   if(a=='esc')i.sc=Math.max(i.sc||0,90);
+   if(a=='close')i.ttr=Math.round((Date.now()-i.ts)/1000);
+   if(a=='open')i.ttr=0;
+
+   const messages={
+     me:'Assigned to You',
+     hold:i.st=='hold'?'Put on hold':'Resumed',
+     esc:'Escalated to critical',
+     close:'Case closed',
+     open:'Case reopened'
+   };
+   lg(i,messages[a]);
+   draw();
+   drDraw();
+ }catch(err){
+   console.error('Failed to update incident:',err);
+   alert('Could not save the incident update. Make sure the AegisSOC backend is running on port 4000.');
+ }
+}
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-id],[data-v],[data-w],[data-s],[data-a],[data-l],[data-x],[data-t],[data-th],[data-csv]');
+  if(!t)return;
+
+  const d=t.dataset;
+
+  if(d.v){
+    S.v=d.v;
+  }
+  else if(d.w){
+    S.w=d.w;
+    console.log('Workspace:',S.w);
+  }
+  else if(d.s){
+    S.st=d.s;
+  }
+  else if(d.l!==undefined){
+    S.live=!S.live;
+  }
+  else if(d.x!==undefined){
+    S.sel=null;
+  }
+  else if(d.t!==undefined){
+    S.tq=d.t=='*'?null:d.t;
+    if(S.tq)S.v='incidents';
+  }
+  else if(d.th!==undefined){
+    document.documentElement.dataset.theme=theme()=='light'?'dark':'light';
+  }
+  else if(d.csv!==undefined){
+    exportCsv();
+    return;
+  }
+  else if(d.a){
+    act(I.find(x=>x.id==S.sel),d.a);
+    return;
+  }
+  else if(d.id){
+    S.sel=d.id;
+    $('#toast').classList.remove('on');
+  }
+
+  draw();
+  drDraw();
+});
+
+function exportCsv(){
+ const rows=F(),esc=v=>'"'+String(v).replace(/"/g,'""')+'"',
+ head=['ID','Incident','MITRE','Severity','AI score','Status','Assignee','Source','Host','User','Detected'],
+ body=rows.map(i=>[i.id,i.title||R[i.r][0],i.mitre||R[i.r][1],i.sev,i.sc,i.st,i.who||'Unassigned',i.src,i.h,i.u,new Date(i.ts).toISOString()]);
+ const csv=[head,...body].map(r=>r.map(esc).join(',')).join('\n'),
+ blob=new Blob([csv],{type:'text/csv'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='aegissoc-incidents.csv';a.click();URL.revokeObjectURL(url)}
+document.addEventListener('keydown',e=>{
+ if(e.key=='/'&&!/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)){e.preventDefault();$('#q').focus();return}
+ if(e.key=='Escape'&&S.sel){S.sel=null;drDraw()}
+ if(e.key=='Enter'&&e.target.dataset&&e.target.dataset.id){S.sel=e.target.dataset.id;drDraw()}});
+$('#q').oninput=e=>{S.q=e.target.value.trim().toLowerCase();draw()};
+$('#sv').onchange=e=>{S.sev=e.target.value;draw()};
+let tt;function toast(a){const b=$('#toast');b.dataset.id=a.id;b.textContent='New critical alert: '+(a.title||R[a.r][0])+' on '+a.h;b.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>b.classList.remove('on'),6000)}
+setInterval(()=>{let ch=0;I.forEach(i=>{if(i.pb!='run')return;ch=1;const s=steps(i);lg(i,'Playbook: '+s[i.pn]);i.pn++;if(i.pn>=s.length){i.pb='done';if(i.sev=='Low'||i.sev=='Medium'){i.st='closed';i.ttr=Math.round((Date.now()-i.ts)/1000);i.auto=1;lg(i,'Auto-resolved by playbook')}else lg(i,'Contained, awaiting analyst review')}});if(ch){draw();if(S.sel)drDraw()}},1200);
+
+draw();
+loadIncidents();
+connectLiveFeed();
+setInterval(loadIncidents,5000);
+</script>
+</body>
+</html>
