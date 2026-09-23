@@ -4,7 +4,7 @@ AegisSOC is an AI-assisted Security Operations Center (SOC) incident management 
 
 The platform combines a browser-based SOC dashboard, Node.js/Express backend, Python/FastAPI ML triage service, PostgreSQL database, WebSocket communication, and SIEM integration.
 
----
+----
 
 ## 🚀 Project Overview
 
